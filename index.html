@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>User Weather Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>User Weather Dashboard</h1>
+        <p>Random users with their current weather information</p>
+      </header>
+
+      <main>
+        <!-- Loading -->
+        <div id="loading" class="loading hidden">
+          <div class="spinner"></div>
+          <p>Loading users and weather data...</p>
+        </div>
+
+        <!-- User Cards -->
+        <div id="user-cards" class="user-grid"></div>
+
+        <!-- Fetch Buttons -->
+        <div class="button-container">
+          <button id="refresh-weather-btn" class="btn btn-secondary" disabled>
+            🔄 Refresh Weather Data
+          </button>
+          <button id="fetch-new-users-btn" class="btn btn-primary">
+            👥 Fetch New Users
+          </button>
+        </div>
+      </main>
+    </div>
+
+    <script type="module" src="dist/main.js"></script>
+  </body>
+</html>
