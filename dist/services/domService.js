@@ -24,7 +24,7 @@ const createWeatherHTML = (weather) => {
   `;
 };
 const createUserCardHTML = (user) => {
-    const location = `${user.city}, ${user.state}, ${user.country}`;
+    const location = `${user.city}, ${user.country}`;
     return `
     <div class="user-card" data-user-id="${user.id}">
       <div class="user-info">
