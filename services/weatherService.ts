@@ -1,6 +1,5 @@
 import { fetchApi } from "../utils/fetch.js";
 import { User } from "../types/userTypes.js";
-import { UserSchema } from "../types/userTypes.js";
 import { retry } from "../utils/retry.js";
 import {
   Weather,
@@ -10,7 +9,6 @@ import {
 import {
   CoordinateResponseSchema,
   WeatherResponseSchema,
-  WeatherSchema,
 } from "../types/weatherTypes.js";
 
 import {
@@ -32,9 +30,17 @@ const getCoordinates = async (city: string, country: string) => {
 
     const data = await fetchApi(url);
 
-    const validatedDataResponse: CoordinateResponse =
-      CoordinateResponseSchema.parse(data);
+    const parsedApiResult = CoordinateResponseSchema.safeParse(data);
 
+    if (!parsedApiResult.success) {
+      console.error(
+        `Invalid coordinate response for ${city}, ${country}:`,
+        parsedApiResult.error
+      );
+      return null;
+    }
+
+    const validatedDataResponse: CoordinateResponse = parsedApiResult.data;
     return validatedDataResponse.results?.[0]?.geometry;
   } catch (error) {
     console.error(`Failed to get coordinates for ${city}, ${country}:`, error);
@@ -48,17 +54,27 @@ const getWeatherData = async (lat: number, lng: number): Promise<Weather> => {
 
     const data = await fetchApi(url);
 
-    const validatedDataResponse: WeatherResponse =
-      WeatherResponseSchema.parse(data);
+    const parsedApiResult = WeatherResponseSchema.safeParse(data);
 
-    const weather = {
+    if (!parsedApiResult.success) {
+      console.error(
+        `Invalid weather response for coordinates ${lat}, ${lng}:`,
+        parsedApiResult.error
+      );
+      throw new Error("Invalid weather data received");
+    }
+
+    const validatedDataResponse: WeatherResponse = parsedApiResult.data;
+
+    const weather: Weather = {
       temp: Math.round(validatedDataResponse.current.temperature_2m),
       humidity: validatedDataResponse.current.relative_humidity_2m,
       condition: getWeatherDescription(
         validatedDataResponse.current.weather_code
       ),
     };
-    return WeatherSchema.parse(weather);
+
+    return weather;
   } catch (error) {
     console.error(
       `Failed to get weather data for coordinates ${lat}, ${lng}:`,
@@ -74,16 +90,16 @@ export const addWeatherToUsers = async (users: User[]): Promise<User[]> => {
       try {
         const coordinates = await getCoordinates(user.city, user.country);
         if (!coordinates) {
-          return { ...user, weather: null };
+          return { ...user, weather: undefined };
         }
 
         const weather = await getWeatherData(coordinates.lat, coordinates.lng);
         const updatedUser = { ...user, weather };
 
-        return UserSchema.parse(updatedUser);
+        return updatedUser;
       } catch (error) {
         console.warn(`Failed to get weather for ${user.name}:`, error);
-        return { ...user, weather: null };
+        return { ...user, weather: undefined };
       }
     })
   );
@@ -100,7 +116,7 @@ export const refreshUsersWeather = async (users: User[]): Promise<User[]> => {
         );
 
         if (!coordinates) {
-          return { ...user, weather: null };
+          return { ...user, weather: undefined };
         }
 
         const weather = await retry(
@@ -112,13 +128,13 @@ export const refreshUsersWeather = async (users: User[]): Promise<User[]> => {
         const updatedUser = { ...user, weather };
 
         // Validate the updated user object
-        return UserSchema.parse(updatedUser);
+        return updatedUser;
       } catch (error) {
         console.warn(
           `Failed to refresh weather for ${user.name} after 3 retries:`,
           error
         );
-        return { ...user, weather: null };
+        return { ...user, weather: undefined };
       }
     })
   );

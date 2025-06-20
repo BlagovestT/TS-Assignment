@@ -1,5 +1,5 @@
 import z from "zod";
-import { WeatherSchema } from "./weatherTypes";
+import { Weather } from "./weatherTypes";
 
 export const ApiUserResponseSchema = z.object({
   results: z.array(
@@ -24,13 +24,22 @@ export const ApiUserResponseSchema = z.object({
 
 export type ApiUserResponse = z.infer<typeof ApiUserResponseSchema>;
 
-export const UserSchema = z.object({
-  id: z.string(),
-  name: z.string(),
-  photo: z.string(),
-  city: z.string(),
-  country: z.string(),
-  weather: WeatherSchema.nullable(),
-});
+export type User = {
+  id: string;
+  name: string;
+  photo: string;
+  city: string;
+  country: string;
+  weather?: Weather;
+};
 
-export type User = z.infer<typeof UserSchema>;
+// export const UserSchema = z.object({
+//   id: z.string(),
+//   name: z.string(),
+//   photo: z.string(),
+//   city: z.string(),
+//   country: z.string(),
+//   weather: WeatherSchema.nullable(),
+// });
+
+// export type User = z.infer<typeof UserSchema>;
